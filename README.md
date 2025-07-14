@@ -33,6 +33,8 @@ An interactive Streamlit dashboard for analyzing the Top 1000 World University r
    ```bash
    pip install -r requirements.txt
    ```
+   
+   **Note**: The dashboard uses `statsmodels` for trendline analysis. If you encounter any issues with this dependency, the dashboard will automatically fall back to basic scatter plots without trendlines.
 
 3. **Run the dashboard**
    ```bash

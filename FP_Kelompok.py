@@ -377,13 +377,22 @@ with tab5:
         st.subheader("📈 Performance Trends")
         
         # Score vs Rank trend
-        fig_trend = px.scatter(
-            filtered_df,
-            x='World Rank',
-            y='Score',
-            trendline="ols",
-            title="Score vs World Rank Trend"
-        )
+        try:
+            fig_trend = px.scatter(
+                filtered_df,
+                x='World Rank',
+                y='Score',
+                trendline="ols",
+                title="Score vs World Rank Trend"
+            )
+        except ImportError:
+            # Fallback if statsmodels is not available
+            fig_trend = px.scatter(
+                filtered_df,
+                x='World Rank',
+                y='Score',
+                title="Score vs World Rank Trend (No trendline - statsmodels not available)"
+            )
         fig_trend.update_layout(height=400)
         st.plotly_chart(fig_trend, use_container_width=True)
         
