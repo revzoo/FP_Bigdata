@@ -638,31 +638,29 @@ with tab7:
                         step=(max_val - min_val) / 100
                     )
             
-            # Make prediction
-            if st.button("🚀 Prediksi Skor"):
-                # Prepare input data
-                input_df = pd.DataFrame([input_data])
-                input_scaled = scaler.transform(input_df)
-                predicted_score = model.predict(input_scaled)[0]
-                
-                # Display result
-                st.success(f"🎯 **Skor Prediksi: {predicted_score:.2f}**")
-                
-                # Show confidence interval (simplified)
-                confidence_range = test_rmse * 1.96  # 95% confidence interval
-                st.info(f"📊 **Rentang Kepercayaan: {predicted_score - confidence_range:.2f} hingga {predicted_score + confidence_range:.2f}**")
-                
-                # Show what this score might mean
-                if predicted_score >= 90:
-                    rank_category = "Universitas Top 10-20"
-                elif predicted_score >= 80:
-                    rank_category = "Universitas Top 50-100"
-                elif predicted_score >= 70:
-                    rank_category = "Universitas Top 200-500"
-                else:
-                    rank_category = "Universitas Top 500+"
-                
-                st.info(f"🏆 **Kategori Peringkat Taksiran: {rank_category}**")
+            # Auto-calculate prediction when sliders change
+            input_df = pd.DataFrame([input_data])
+            input_scaled = scaler.transform(input_df)
+            predicted_score = model.predict(input_scaled)[0]
+            
+            # Display result
+            st.success(f"🎯 **Skor Prediksi: {predicted_score:.2f}**")
+            
+            # Show confidence interval (simplified)
+            confidence_range = test_rmse * 1.96  # 95% confidence interval
+            st.info(f"📊 **Rentang Kepercayaan: {predicted_score - confidence_range:.2f} hingga {predicted_score + confidence_range:.2f}**")
+            
+            # Show what this score might mean
+            if predicted_score >= 90:
+                rank_category = "Universitas Top 10-20"
+            elif predicted_score >= 80:
+                rank_category = "Universitas Top 50-100"
+            elif predicted_score >= 70:
+                rank_category = "Universitas Top 200-500"
+            else:
+                rank_category = "Universitas Top 500+"
+            
+            st.info(f"🏆 **Kategori Peringkat Taksiran: {rank_category}**")
     
     else:
         st.warning("⚠️ Silakan pilih setidaknya 2 fitur untuk prediksi.")
