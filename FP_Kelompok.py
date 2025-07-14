@@ -73,10 +73,19 @@ st.sidebar.header("📊 Filter Dashboard")
 
 # Country filter
 countries = sorted(df['Location'].unique())
+
+# Add 'Pilih Semua Negara' button
+if 'selected_countries' not in st.session_state:
+    st.session_state.selected_countries = countries[:10]  # Default to first 10
+
+if st.sidebar.button("Pilih Semua Negara"):
+    st.session_state.selected_countries = countries
+
 selected_countries = st.sidebar.multiselect(
     "Pilih Negara:",
     countries,
-    default=countries[:10]  # Default to first 10 countries
+    default=st.session_state.selected_countries,
+    key="selected_countries"
 )
 
 # Rank range filter
