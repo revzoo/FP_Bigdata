@@ -203,7 +203,7 @@ with tab2:
             color=country_counts.values,
             color_continuous_scale='plasma'
         )
-        fig_country.update_layout(height=500)
+        fig_country.update_layout(height=500, xaxis_title='Jumlah Universitas', yaxis_title='Negara')
         st.plotly_chart(fig_country, use_container_width=True)
     
     with col2:
