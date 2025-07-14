@@ -654,49 +654,6 @@ with tab7:
                     rank_category = "Universitas Top 500+"
                 
                 st.info(f"🏆 **Kategori Peringkat Taksiran: {rank_category}**")
-            
-            # Batch prediction
-            st.subheader("📊 Prediksi Batch")
-            st.write("Unggah file CSV dengan nilai fitur untuk memprediksi beberapa skor:")
-            
-            uploaded_file = st.file_uploader(
-                "Pilih file CSV dengan kolom fitur:",
-                type=['csv'],
-                help="CSV harus memiliki kolom yang sesuai dengan fitur yang dipilih"
-            )
-            
-            if uploaded_file is not None:
-                try:
-                    batch_df = pd.read_csv(uploaded_file)
-                    
-                    # Check if required columns exist
-                    missing_cols = [col for col in selected_features if col not in batch_df.columns]
-                    
-                    if missing_cols:
-                        st.error(f"Kolom yang hilang dalam file yang diunggah: {missing_cols}")
-                    else:
-                        # Make predictions
-                        batch_features = batch_df[selected_features]
-                        batch_scaled = scaler.transform(batch_features)
-                        batch_predictions = model.predict(batch_scaled)
-                        
-                        # Add predictions to dataframe
-                        batch_df['Predicted_Score'] = batch_predictions
-                        
-                        st.success(f"✅ Berhasil memprediksi skor untuk {len(batch_df)} entri!")
-                        st.dataframe(batch_df, use_container_width=True)
-                        
-                        # Download predictions
-                        csv_pred = batch_df.to_csv(index=False)
-                        st.download_button(
-                            label="📥 Unduh prediksi sebagai CSV",
-                            data=csv_pred,
-                            file_name="university_score_predictions.csv",
-                            mime="text/csv"
-                        )
-                        
-                except Exception as e:
-                    st.error(f"Error saat memproses file: {str(e)}")
     
     else:
         st.warning("⚠️ Silakan pilih setidaknya 2 fitur untuk prediksi.")
