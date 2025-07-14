@@ -88,6 +88,14 @@ FP/
 - Radar chart comparisons
 - Data export functionality
 
+### 7. 🤖 Score Prediction
+- Linear regression model for score prediction
+- Interactive feature selection
+- Model performance metrics (R², RMSE, MAE)
+- Feature importance analysis
+- Individual and batch prediction capabilities
+- Confidence intervals and ranking estimates
+
 ## 🎛️ Interactive Features
 
 ### Sidebar Filters
@@ -115,6 +123,7 @@ The dashboard uses the "Top 1000 World University" dataset which includes:
 - **Framework**: Streamlit
 - **Visualization**: Plotly, Folium
 - **Data Processing**: Pandas, NumPy
+- **Machine Learning**: Scikit-learn, Linear Regression
 - **Styling**: Custom CSS
 
 ## 🐛 Troubleshooting

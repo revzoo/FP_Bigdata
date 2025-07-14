@@ -8,6 +8,10 @@ import folium
 from streamlit_folium import st_folium
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from sklearn.preprocessing import StandardScaler
 
 # Page configuration
 st.set_page_config(
@@ -116,13 +120,14 @@ with col4:
     st.metric("Top Ranked", filtered_df['World Rank'].min())
 
 # Tabs for different visualizations
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "🏆 Rankings & Scores", 
     "🌍 Geographic Distribution", 
     "📈 Performance Metrics",
     "🏛️ Institution Analysis",
     "📊 Statistical Insights",
-    "🔍 Search & Compare"
+    "🔍 Search & Compare",
+    "🤖 Score Prediction"
 ])
 
 # Tab 1: Rankings & Scores
@@ -476,6 +481,242 @@ with tab6:
         file_name="filtered_universities.csv",
         mime="text/csv"
     )
+
+# Tab 7: Score Prediction
+with tab7:
+    st.header("🤖 University Score Prediction with Linear Regression")
+    
+    # Prepare data for modeling
+    st.subheader("📊 Model Setup")
+    
+    # Select features for prediction
+    feature_options = ['Quality of Education', 'Alumni Employment', 'Quality of Faculty', 
+                      'Research Output', 'Quality Publications', 'Influence', 'Citations']
+    
+    selected_features = st.multiselect(
+        "Select features to use for prediction:",
+        feature_options,
+        default=feature_options[:5]  # Default to first 5 features
+    )
+    
+    if len(selected_features) >= 2:
+        # Prepare data
+        model_df = filtered_df[selected_features + ['Score']].dropna()
+        
+        if len(model_df) > 10:  # Ensure we have enough data
+            X = model_df[selected_features]
+            y = model_df['Score']
+            
+            # Split data
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            
+            # Scale features
+            scaler = StandardScaler()
+            X_train_scaled = scaler.fit_transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
+            
+            # Train model
+            model = LinearRegression()
+            model.fit(X_train_scaled, y_train)
+            
+            # Make predictions
+            y_pred_train = model.predict(X_train_scaled)
+            y_pred_test = model.predict(X_test_scaled)
+            
+            # Calculate metrics
+            train_r2 = r2_score(y_train, y_pred_train)
+            test_r2 = r2_score(y_test, y_pred_test)
+            train_rmse = np.sqrt(mean_squared_error(y_train, y_pred_train))
+            test_rmse = np.sqrt(mean_squared_error(y_test, y_pred_test))
+            train_mae = mean_absolute_error(y_train, y_pred_train)
+            test_mae = mean_absolute_error(y_test, y_pred_test)
+            
+            # Display model performance
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Training R² Score", f"{train_r2:.3f}")
+                st.metric("Training RMSE", f"{train_rmse:.2f}")
+            
+            with col2:
+                st.metric("Test R² Score", f"{test_r2:.3f}")
+                st.metric("Test RMSE", f"{test_rmse:.2f}")
+            
+            with col3:
+                st.metric("Training MAE", f"{train_mae:.2f}")
+                st.metric("Test MAE", f"{test_mae:.2f}")
+            
+            # Model coefficients
+            st.subheader("📈 Model Coefficients")
+            coefficients_df = pd.DataFrame({
+                'Feature': selected_features,
+                'Coefficient': model.coef_
+            }).sort_values('Coefficient', key=abs, ascending=False)
+            
+            fig_coeff = px.bar(
+                coefficients_df,
+                x='Coefficient',
+                y='Feature',
+                orientation='h',
+                title="Feature Importance (Coefficient Magnitude)",
+                color='Coefficient',
+                color_continuous_scale='RdBu'
+            )
+            fig_coeff.update_layout(height=400)
+            st.plotly_chart(fig_coeff, use_container_width=True)
+            
+            # Prediction vs Actual
+            st.subheader("🎯 Prediction vs Actual Values")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Training data
+                fig_train = px.scatter(
+                    x=y_train,
+                    y=y_pred_train,
+                    title="Training Data: Actual vs Predicted",
+                    labels={'x': 'Actual Score', 'y': 'Predicted Score'}
+                )
+                fig_train.add_trace(go.Scatter(
+                    x=[y_train.min(), y_train.max()],
+                    y=[y_train.min(), y_train.max()],
+                    mode='lines',
+                    name='Perfect Prediction',
+                    line=dict(dash='dash', color='red')
+                ))
+                fig_train.update_layout(height=400)
+                st.plotly_chart(fig_train, use_container_width=True)
+            
+            with col2:
+                # Test data
+                fig_test = px.scatter(
+                    x=y_test,
+                    y=y_pred_test,
+                    title="Test Data: Actual vs Predicted",
+                    labels={'x': 'Actual Score', 'y': 'Predicted Score'}
+                )
+                fig_test.add_trace(go.Scatter(
+                    x=[y_test.min(), y_test.max()],
+                    y=[y_test.min(), y_test.max()],
+                    mode='lines',
+                    name='Perfect Prediction',
+                    line=dict(dash='dash', color='red')
+                ))
+                fig_test.update_layout(height=400)
+                st.plotly_chart(fig_test, use_container_width=True)
+            
+            # Interactive Prediction
+            st.subheader("🔮 Make Your Own Predictions")
+            st.write("Enter values for the selected features to predict a university score:")
+            
+            # Create input fields for features
+            input_data = {}
+            col1, col2 = st.columns(2)
+            
+            for i, feature in enumerate(selected_features):
+                with col1 if i % 2 == 0 else col2:
+                    # Get min and max values for the feature
+                    min_val = float(filtered_df[feature].min())
+                    max_val = float(filtered_df[feature].max())
+                    mean_val = float(filtered_df[feature].mean())
+                    
+                    input_data[feature] = st.slider(
+                        f"{feature}:",
+                        min_value=min_val,
+                        max_value=max_val,
+                        value=mean_val,
+                        step=(max_val - min_val) / 100
+                    )
+            
+            # Make prediction
+            if st.button("🚀 Predict Score"):
+                # Prepare input data
+                input_df = pd.DataFrame([input_data])
+                input_scaled = scaler.transform(input_df)
+                predicted_score = model.predict(input_scaled)[0]
+                
+                # Display result
+                st.success(f"🎯 **Predicted Score: {predicted_score:.2f}**")
+                
+                # Show confidence interval (simplified)
+                confidence_range = test_rmse * 1.96  # 95% confidence interval
+                st.info(f"📊 **Confidence Range: {predicted_score - confidence_range:.2f} to {predicted_score + confidence_range:.2f}**")
+                
+                # Show what this score might mean
+                if predicted_score >= 90:
+                    rank_category = "Top 10-20 universities"
+                elif predicted_score >= 80:
+                    rank_category = "Top 50-100 universities"
+                elif predicted_score >= 70:
+                    rank_category = "Top 200-500 universities"
+                else:
+                    rank_category = "Top 500+ universities"
+                
+                st.info(f"🏆 **Estimated Ranking Category: {rank_category}**")
+            
+            # Batch prediction
+            st.subheader("📊 Batch Prediction")
+            st.write("Upload a CSV file with feature values to predict multiple scores:")
+            
+            uploaded_file = st.file_uploader(
+                "Choose a CSV file with feature columns:",
+                type=['csv'],
+                help="CSV should have columns matching the selected features"
+            )
+            
+            if uploaded_file is not None:
+                try:
+                    batch_df = pd.read_csv(uploaded_file)
+                    
+                    # Check if required columns exist
+                    missing_cols = [col for col in selected_features if col not in batch_df.columns]
+                    
+                    if missing_cols:
+                        st.error(f"Missing columns in uploaded file: {missing_cols}")
+                    else:
+                        # Make predictions
+                        batch_features = batch_df[selected_features]
+                        batch_scaled = scaler.transform(batch_features)
+                        batch_predictions = model.predict(batch_scaled)
+                        
+                        # Add predictions to dataframe
+                        batch_df['Predicted_Score'] = batch_predictions
+                        
+                        st.success(f"✅ Successfully predicted scores for {len(batch_df)} entries!")
+                        st.dataframe(batch_df, use_container_width=True)
+                        
+                        # Download predictions
+                        csv_pred = batch_df.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download predictions as CSV",
+                            data=csv_pred,
+                            file_name="university_score_predictions.csv",
+                            mime="text/csv"
+                        )
+                        
+                except Exception as e:
+                    st.error(f"Error processing file: {str(e)}")
+    
+    else:
+        st.warning("⚠️ Please select at least 2 features for prediction.")
+    
+    # Model explanation
+    st.subheader("📚 How the Model Works")
+    st.markdown("""
+    **Linear Regression Model:**
+    - Uses selected performance metrics to predict university scores
+    - Trains on 80% of the data and tests on 20%
+    - Features are standardized (scaled) for better performance
+    - R² score shows how well the model explains score variation
+    - RMSE and MAE show prediction accuracy
+    
+    **Interpretation:**
+    - Higher R² = Better model fit
+    - Lower RMSE/MAE = More accurate predictions
+    - Positive coefficients = Higher feature values increase predicted score
+    - Negative coefficients = Higher feature values decrease predicted score
+    """)
 
 # Footer
 st.markdown("---")
