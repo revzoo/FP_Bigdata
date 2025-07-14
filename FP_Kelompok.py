@@ -15,7 +15,7 @@ from sklearn.preprocessing import StandardScaler
 
 # Page configuration
 st.set_page_config(
-    page_title="Dashboard 1000 Universitas Terbaik Dunia",
+    page_title="Dashboard Universitas Terbaik Dunia",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -431,7 +431,7 @@ with tab6:
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("🔍 Cari Universitas")
+        st.subheader("Cari Universitas")
         
         # Multi-select for universities
         universities = sorted(filtered_df['Institution'].unique())
@@ -493,7 +493,7 @@ with tab6:
 
 # Tab 7: Score Prediction
 with tab7:
-    st.header("🤖 Prediksi Skor Universitas dengan Regresi Linier")
+    st.header("Prediksi Skor Universitas dengan Regresi Linier")
     
     # Prepare data for modeling
     st.subheader("📊 Pengaturan Model")
